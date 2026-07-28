@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="background-mesh"></div>
+    <main class="container">
+        <header class="hero">
+            <h1>AI Smart Learning Platform</h1>
+            <p>Adaptive recommendations powered by Unsupervised & Reinforcement Learning</p>
+        </header>
+
+        <section class="dashboard">
+            <!-- Input Form for Student Simulation -->
+            <div class="card form-card">
+                <h2>Simulate Student Data</h2>
+                <form id="student-form">
+                    <div class="input-group">
+                        <label for="study_hours">Study Hours (Week)</label>
+                        <input type="number" id="study_hours" name="study_hours" placeholder="e.g., 15" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="last_score">Last Assessment Score</label>
+                        <input type="number" id="last_score" name="last_score" placeholder="e.g., 85" required>
+                    </div>
+                    <button type="submit" class="btn-glow">Get AI Recommendation</button>
+                </form>
+            </div>
+
+            <!-- Recommendation Output -->
+            <div class="card result-card" id="result-container">
+                <div class="ai-status">
+                    <div class="pulse"></div>
+                    <span>AI Engine Ready</span>
+                </div>
+                
+                <div id="result-content" class="hidden">
+                    <div class="result-item">
+                        <h3>Detected Profile (Clustering)</h3>
+                        <p id="profile-text" class="gradient-text">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h3>Optimal Action (Q-Learning)</h3>
+                        <p id="action-text" class="highlight-box">-</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Analyzing...';
+            btn.disabled = true;
+
+            const data = {
+                study_hours: document.getElementById('study_hours').value,
+                last_score: document.getElementById('last_score').value
+            };
+
+            try {
+                // Call the FastAPI endpoint
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                // Animate and show results
+                document.getElementById('result-content').classList.remove('hidden');
+                document.getElementById('profile-text').innerText = result.simulated_profile;
+                document.getElementById('action-text').innerText = result.recommended_action;
+                
+                // Visual feedback in status
+                const aiStatus = document.querySelector('.ai-status span');
+                aiStatus.innerText = 'Models applied successfully!';
+                aiStatus.style.color = 'var(--accent-color)';
+                
+            } catch (error) {
+                console.error("Error connecting to backend:", error);
+            } finally {
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
