@@ -2,7 +2,9 @@ name: Continuous Integration (CI)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - "main"
+      - "rama-experimento*"
   pull_request:
     branches: [ "main" ]
 
@@ -26,3 +28,25 @@ jobs:
       
     - name: Run unit tests
       run: uv run python -m unittest discover -s tests
+
+  experiment:
+    needs: test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/rama-experimento')
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      
+    - name: Train model on Experiment Branch
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        MLFLOW_TRACKING_URI: databricks
+        MLFLOW_EXPERIMENT_NAME: /Shared/mlops_experiment_${{ github.sha }}
+      run: |
+        uv sync
+        uv run python src/ml/clustering/train_kmeans.py
+        uv run python src/ml/reinforcement/train_agent.py

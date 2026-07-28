@@ -1,0 +1,48 @@
+name: Continuous Training (CT)
+
+on:
+  schedule:
+    # Ejecutar todos los domingos a las 3:00 AM
+    - cron: '0 3 * * 0' 
+  workflow_dispatch: # Botón para ejecución manual
+
+jobs:
+  retrain-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        # Se necesita un PAT para poder hacer push y detonar el CD (Render)
+        token: ${{ secrets.PAT_TOKEN }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run Training (Registra en Databricks)
+      env:
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        MLFLOW_TRACKING_URI: databricks
+        MLFLOW_EXPERIMENT_NAME: /Shared/mlops_clustering_prod
+      run: |
+        uv run python src/ml/clustering/train_kmeans.py
+        uv run python src/ml/reinforcement/train_agent.py
+
+    - name: Auto-Commit New Models (Si son mejores)
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add src/models/
+        
+        # Si no hay cambios en el modelo, git commit fallará limpiamente
+        git commit -m "Auto-update: Continuous Training Models 🤖" || echo "Sin mejoras significativas. No hay cambios."
+        git push origin main
