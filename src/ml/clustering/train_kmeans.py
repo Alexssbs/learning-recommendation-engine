@@ -59,14 +59,42 @@ def train_and_save_clustering():
         cluster_data = df[df['Cluster'] == i]
         print(f"Perfil {i}: {len(cluster_data)} estudiantes. Promedio de nota: {cluster_data['G3'].mean():.2f}")
     
-    # 5. Guardar los modelos (Artefactos)
+    # 5. Guardar los modelos (Artefactos) e Integrar con Databricks (MLflow)
     models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models")
     os.makedirs(models_dir, exist_ok=True)
     
+    # Intenta registrar en Databricks usando MLflow
+    try:
+        import mlflow
+        import mlflow.sklearn
+        from sklearn.metrics import silhouette_score
+        
+        print("\nConectando a Databricks MLflow...")
+        mlflow.set_tracking_uri("databricks")
+        # Usa el nombre de experimento por defecto o el que viene del entorno (ej. de ct.yml)
+        experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "/Shared/mlops_clustering_prod")
+        mlflow.set_experiment(experiment_name)
+        
+        with mlflow.start_run():
+            # Registrar hiperparámetros
+            mlflow.log_param("n_clusters", 4)
+            mlflow.log_param("random_state", 42)
+            
+            # Calcular y registrar métricas (qué tan bien se separaron los grupos)
+            score = silhouette_score(X_scaled, kmeans.labels_)
+            mlflow.log_metric("silhouette_score", score)
+            
+            # Subir el modelo a la nube de Databricks
+            mlflow.sklearn.log_model(kmeans, "kmeans_model")
+            print(f"✅ ¡Modelo registrado exitosamente en Databricks! (Silhouette Score: {score:.3f})")
+    except Exception as e:
+        print(f"\n⚠️ Advertencia: No se pudo conectar a Databricks MLflow ({e}). Guardando solo en local.")
+
+    # Guardar localmente para que la App Web (FastAPI) pueda cargarlos
     joblib.dump(kmeans, os.path.join(models_dir, "kmeans_model.pkl"))
     joblib.dump(scaler, os.path.join(models_dir, "scaler.pkl"))
     
-    print(f"\nModelos reales guardados en {models_dir}")
+    print(f"\nModelos reales guardados localmente en {models_dir}")
 
 if __name__ == "__main__":
     train_and_save_clustering()

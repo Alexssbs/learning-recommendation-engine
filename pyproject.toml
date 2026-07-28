@@ -5,8 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "databricks-sdk>=0.122.0",
     "fastapi>=0.140.7",
     "jinja2>=3.1.6",
+    "mlflow>=1.27.0",
     "numpy>=2.5.1",
     "pandas>=3.0.5",
     "scikit-learn>=1.9.0",
