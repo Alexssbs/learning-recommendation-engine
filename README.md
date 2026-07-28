@@ -52,12 +52,12 @@ flowchart TD
     classDef rl fill:#009688,stroke:#fff,stroke-width:2px,color:#fff
     classDef api fill:#1e40af,stroke:#fff,stroke-width:2px,color:#fff
 
-    U(👨‍🎓 Frontend Web <br> Datos del Estudiante):::user -->|Ingresa Horas y Nota| API(🚀 FastAPI Backend):::api
-    API -->|1. Escala los datos| C(🧩 K-Means Model <br> Aprendizaje No Supervisado):::clustering
-    C -->|2. Asigna un Perfil (Ej: Riesgo de Abandono)| RL(🤖 Agente Q-Learning <br> Aprendizaje por Refuerzo):::rl
-    RL -->|3. Ecuación de Bellman <br> Busca Acción Óptima| A(🎯 Mejor Intervención <br> Ej: Enviar Alerta):::rl
+    U["👨‍🎓 Frontend Web <br> Datos del Estudiante"]:::user -->|Ingresa Horas y Nota| API["🚀 FastAPI Backend"]:::api
+    API -->|1. Escala los datos| C["🧩 K-Means Model <br> Aprendizaje No Supervisado"]:::clustering
+    C -->|2. Asigna un Perfil - Ej. Riesgo de Abandono| RL["🤖 Agente Q-Learning <br> Aprendizaje por Refuerzo"]:::rl
+    RL -->|3. Ecuacion de Bellman - Busca Accion Optima| A["🎯 Mejor Intervencion - Ej. Enviar Alerta"]:::rl
     A -->|4. Respuesta JSON| API
-    API -->|Muestra Recomendación| U
+    API -->|Muestra Recomendacion| U
 ```
 
 ### 1. El Clustering (K-Means)
