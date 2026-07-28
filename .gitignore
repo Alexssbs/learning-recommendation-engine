@@ -5,3 +5,19 @@ __pycache__/
 .DS_Store
 data/raw/
 data/processed/
+
+# Antigravity / Agent files
+.agents/
+skills-lock.json
+
+# MLflow local runs (just in case)
+mlruns/
+.mlruns/
+
+# Environment files (secrets)
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
