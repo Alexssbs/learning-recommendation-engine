@@ -75,10 +75,12 @@ El desarrollo del modelo no sirve de nada si no llega a producción. Este proyec
 ```text
 .
 ├── .github/workflows/       # Pipelines (Actions)
-│   ├── ci.yml               # Integración Continua (Unit Tests para ML)
-│   └── cd.yml               # Despliegue Continuo a Render
+│   ├── ci.yml               # Integración Continua y Experimentación
+│   ├── cd.yml               # Despliegue Continuo a Render
+│   └── ct.yml               # Entrenamiento Continuo (Cron)
 ├── src/
 │   ├── api/                 # Backend FastAPI y vistas Jinja2 (Frontend)
+│   ├── core/                # Configuraciones base (.gitkeep)
 │   ├── ml/                  # Lógica de Modelos
 │   │   ├── clustering/      # Inferencias y entrenamiento de K-Means
 │   │   └── reinforcement/   # Entorno, Agente RL y entrenamiento
@@ -86,14 +88,17 @@ El desarrollo del modelo no sirve de nada si no llega a producción. Este proyec
 ├── data/
 │   ├── raw/                 # Dataset original UCI (Ignorado en git)
 │   └── processed/           # Datos limpios y escalados por el pipeline (Ignorado en git)
+├── notebooks/               # Jupyter notebooks para Exploración de Datos (EDA)
+├── databricks/              # Scripts para ejecución remota en la nube
 ├── tests/                   # Pruebas Unitarias del comportamiento de la IA
 ├── pyproject.toml           # Dependencias manejadas ultra rápido por `uv`
 └── uv.lock                  # Determinismo de entorno
 ```
 
 ### Escenarios Operativos Automatizados:
-1. **Integración Continua (CI):** Si se modifica el código matemático en `infer_profile.py`, GitHub Actions ejecuta los *Unit Tests* (`tests/test_ml.py`). Si un cambio rompe la lógica de que un estudiante reprobado sea marcado como "Riesgo", el CI falla y bloquea el despliegue.
-2. **Despliegue Continuo (CD):** Si las pruebas pasan en la rama `main`, se envía un Webhook a **Render**, el cual reconstruye el entorno (FastAPI + HTML/CSS) y expone los modelos actualizados sin tiempo de inactividad (Zero Downtime).
+1. **Integración Continua (CI):** Ejecuta *Unit Tests* (`tests/test_ml.py`) automáticamente. Además, soporta experimentación al registrar modelos en Databricks si se trabaja en una rama de experimento.
+2. **Entrenamiento Continuo (CT):** Un cron job reentrena automáticamente los modelos con datos frescos y los sube a producción si detecta mejoras.
+3. **Despliegue Continuo (CD):** Render detecta los cambios estables en `main` y actualiza la aplicación web (FastAPI + HTML/CSS) sin tiempo de inactividad (Zero Downtime).
 
 ---
 
