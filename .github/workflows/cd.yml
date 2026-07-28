@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Solo despliega si los tests del CI pasaron (opcional, pero buena práctica MLOps)
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
     
