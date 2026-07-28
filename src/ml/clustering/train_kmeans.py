@@ -10,7 +10,20 @@ def train_and_save_clustering():
     
     # 1. Cargar el dataset real (Estudiantes de la Universidad de Irvine - UCI)
     # Se usa el delimitador ';' ya que es un CSV europeo
-    data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "raw", "student-mat.csv")
+    raw_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "raw")
+    os.makedirs(raw_dir, exist_ok=True)
+    data_path = os.path.join(raw_dir, "student-mat.csv")
+    
+    if not os.path.exists(data_path):
+        import urllib.request
+        import zipfile
+        print("Dataset no encontrado localmente. Descargando desde UCI Machine Learning Repository...")
+        zip_path = os.path.join(raw_dir, "student.zip")
+        urllib.request.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00320/student.zip", zip_path)
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(raw_dir)
+        print("Descarga y extracción completada.")
+        
     df = pd.read_csv(data_path, sep=';')
     
     # 2. Selección de Características (Feature Engineering)
