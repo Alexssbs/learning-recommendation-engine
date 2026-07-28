@@ -95,10 +95,10 @@ El desarrollo del modelo no sirve de nada si no llega a producción. Este proyec
 └── uv.lock                  # Determinismo de entorno
 ```
 
-### Escenarios Operativos Automatizados:
-1. **Integración Continua (CI):** Ejecuta *Unit Tests* (`tests/test_ml.py`) automáticamente. Además, soporta experimentación al registrar modelos en Databricks si se trabaja en una rama de experimento.
-2. **Entrenamiento Continuo (CT):** Un cron job reentrena automáticamente los modelos con datos frescos y los sube a producción si detecta mejoras.
-3. **Despliegue Continuo (CD):** Render detecta los cambios estables en `main` y actualiza la aplicación web (FastAPI + HTML/CSS) sin tiempo de inactividad (Zero Downtime).
+### Escenarios Operativos Automatizados (MLOps):
+1. **Integración Continua (CI):** Ejecuta *Unit Tests* (`tests/test_ml.py`) automáticamente usando un entorno inyectado con `uv`.
+2. **Entrenamiento Continuo (CT):** Un cron job reentrena automáticamente los modelos con datos frescos (descarga la última versión de UCI). Si el entrenamiento es exitoso, **registra las métricas y los modelos en la nube de Databricks mediante MLflow**, y hace un commit automático si detecta mejoras.
+3. **Despliegue Continuo (CD):** Render detecta los cambios estables en `main` y actualiza la aplicación web (FastAPI + HTML/CSS) automáticamente mediante Webhooks (Zero Downtime).
 
 ---
 
