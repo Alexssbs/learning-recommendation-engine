@@ -83,7 +83,9 @@ El desarrollo del modelo no sirve de nada si no llega a producción. Este proyec
 │   │   ├── clustering/      # Inferencias y entrenamiento de K-Means
 │   │   └── reinforcement/   # Entorno, Agente RL y entrenamiento
 │   └── models/              # Artefactos (Q-Table, Modelos PKL, Scaler)
-├── data/raw                 # Dataset original (Ignorado en git)
+├── data/
+│   ├── raw/                 # Dataset original UCI (Ignorado en git)
+│   └── processed/           # Datos limpios y escalados por el pipeline (Ignorado en git)
 ├── tests/                   # Pruebas Unitarias del comportamiento de la IA
 ├── pyproject.toml           # Dependencias manejadas ultra rápido por `uv`
 └── uv.lock                  # Determinismo de entorno
