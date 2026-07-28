@@ -67,7 +67,7 @@ def train_and_save_clustering():
     try:
         import mlflow
         import mlflow.sklearn
-        from sklearn.metrics import silhouette_score
+        from sklearn.metrics import silhouette_score, davies_bouldin_score, adjusted_rand_score
         
         print("\nConectando a Databricks MLflow...")
         mlflow.set_tracking_uri("databricks")
@@ -80,13 +80,22 @@ def train_and_save_clustering():
             mlflow.log_param("n_clusters", 4)
             mlflow.log_param("random_state", 42)
             
-            # Calcular y registrar métricas (qué tan bien se separaron los grupos)
-            score = silhouette_score(X_scaled, kmeans.labels_)
-            mlflow.log_metric("silhouette_score", score)
+            # Calcular y registrar métricas matemáticas (Internas)
+            score_sil = silhouette_score(X_scaled, kmeans.labels_)
+            score_db = davies_bouldin_score(X_scaled, kmeans.labels_)
+            
+            mlflow.log_metric("silhouette_score", score_sil)
+            mlflow.log_metric("davies_bouldin", score_db)
+            
+            # Validación Externa (Senior Proxy Metric)
+            # Evalúa si los clústeres se correlacionan con el éxito real del estudiante (G3 >= 10)
+            passed_real = (df['G3'] >= 10).astype(int)
+            ari_score = adjusted_rand_score(passed_real, kmeans.labels_)
+            mlflow.log_metric("adjusted_rand_index", ari_score)
             
             # Subir el modelo a la nube de Databricks
             mlflow.sklearn.log_model(kmeans, "kmeans_model")
-            print(f"✅ ¡Modelo registrado exitosamente en Databricks! (Silhouette Score: {score:.3f})")
+            print(f"✅ ¡Modelo registrado en Databricks! (Silhouette: {score_sil:.3f} | ARI: {ari_score:.3f})")
     except Exception as e:
         print(f"\n⚠️ Advertencia: No se pudo conectar a Databricks MLflow ({e}). Guardando solo en local.")
 
