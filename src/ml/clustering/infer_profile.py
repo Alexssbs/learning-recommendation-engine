@@ -13,7 +13,7 @@ def infer_student_profile(study_hours: float, last_score: float) -> tuple[int, s
     
     # Si los modelos reales no existen (aún no se han entrenado), usamos un fallback simple
     if not os.path.exists(kmeans_path) or not os.path.exists(scaler_path):
-        return 0, "Perfil Base (Falta entrenar K-Means)"
+        return 0, "Base Profile (K-Means not trained)"
         
     kmeans = joblib.load(kmeans_path)
     scaler = joblib.load(scaler_path)
@@ -42,11 +42,11 @@ def infer_student_profile(study_hours: float, last_score: float) -> tuple[int, s
     
     # Mapeo de nombres descriptivos (puede variar según cómo agrupó el K-Means)
     nombres_perfiles = {
-        0: "Grupo 0: Desempeño Promedio",
-        1: "Grupo 1: Alto Riesgo",
-        2: "Grupo 2: Excelencia Académica",
-        3: "Grupo 3: Irregulares"
+        0: "Group 0: Average Performance",
+        1: "Group 1: High Risk",
+        2: "Group 2: Academic Excellence",
+        3: "Group 3: Irregular Study Habits"
     }
     
-    return cluster_id, nombres_perfiles.get(cluster_id, "Desconocido")
+    return cluster_id, nombres_perfiles.get(cluster_id, "Unknown")
 

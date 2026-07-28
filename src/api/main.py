@@ -21,10 +21,10 @@ agent.load_model(MODEL_PATH)
 
 # Diccionario para traducir el ID de acción a texto
 ACTION_MAP = {
-    0: "Ver Video Resumen",
-    1: "Hacer Cuestionario Práctico",
-    2: "Tomar un Descanso Corto",
-    3: "Alerta y Mensaje Motivacional"
+    0: "Watch Summary Video",
+    1: "Take Practice Quiz",
+    2: "Take a Short Break",
+    3: "Alert & Motivational Message"
 }
 
 class StudentData(BaseModel):
@@ -66,11 +66,11 @@ async def get_recommendation(student: StudentData):
     agent.epsilon = 0.0  
     action_id = agent.choose_action(state=profile_id)
     
-    recommended_action = ACTION_MAP.get(action_id, "Acción Desconocida")
+    recommended_action = ACTION_MAP.get(action_id, "Unknown Action")
     
     return {
         "status": "success",
-        "simulated_profile": f"{profile_name} (Perfil {profile_id})",
+        "simulated_profile": f"{profile_name} (Profile {profile_id})",
         "recommended_action": recommended_action,
-        "message": "IA Real: Datos procesados por los algoritmos."
+        "message": "Real AI: Data processed by ML algorithms."
     }
