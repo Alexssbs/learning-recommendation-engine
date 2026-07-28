@@ -1,21 +1,52 @@
+import joblib
+import os
+import pandas as pd
+
 def infer_student_profile(study_hours: float, last_score: float) -> tuple[int, str]:
     """
-    Simulación del modelo de Clustering (Aprendizaje No Supervisado).
-    En un entorno real, aquí cargaríamos un modelo K-Means o HDBSCAN (ej. usando scikit-learn)
-    y ejecutaríamos `model.predict([[study_hours, last_score]])`.
-    
-    Mapeo de Perfiles:
-    0: Constante
-    1: Nocturno / Irregular
-    2: Riesgo de Abandono
-    3: Intensivo
+    Inferencia de Clustering usando el modelo real K-Means entrenado.
     """
+    # Rutas a los modelos guardados
+    models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models")
+    kmeans_path = os.path.join(models_dir, "kmeans_model.pkl")
+    scaler_path = os.path.join(models_dir, "scaler.pkl")
     
-    if last_score < 50:
-        return 2, "Riesgo de Abandono"
-    elif study_hours > 20:
-        return 3, "Estudiante Intensivo"
-    elif study_hours < 10 and last_score >= 50:
-        return 1, "Estudio Irregular"
-    else:
-        return 0, "Estudiante Constante"
+    # Si los modelos reales no existen (aún no se han entrenado), usamos un fallback simple
+    if not os.path.exists(kmeans_path) or not os.path.exists(scaler_path):
+        return 0, "Perfil Base (Falta entrenar K-Means)"
+        
+    kmeans = joblib.load(kmeans_path)
+    scaler = joblib.load(scaler_path)
+    
+    # Preprocesamiento de la entrada para emparejar con el formato del dataset UCI
+    # Convertir horas a la escala de estudio del dataset (1 a 4)
+    if study_hours < 2: studytime = 1
+    elif study_hours <= 5: studytime = 2
+    elif study_hours <= 10: studytime = 3
+    else: studytime = 4
+    
+    # Asumimos promedios para valores no proveídos (inasistencias y fallos)
+    absences = 2 
+    failures = 0
+    
+    # Convertir nota sobre 100 a nota sobre 20 (escala europea del dataset)
+    g3_score = (last_score / 100) * 20
+    
+    # Crear un DataFrame con los nombres de características correctos
+    df_input = pd.DataFrame([[studytime, absences, failures, g3_score]], 
+                            columns=['studytime', 'absences', 'failures', 'G3'])
+    
+    # Escalar y Predecir
+    X_scaled = scaler.transform(df_input)
+    cluster_id = int(kmeans.predict(X_scaled)[0])
+    
+    # Mapeo de nombres descriptivos (puede variar según cómo agrupó el K-Means)
+    nombres_perfiles = {
+        0: "Grupo 0: Desempeño Promedio",
+        1: "Grupo 1: Alto Riesgo",
+        2: "Grupo 2: Excelencia Académica",
+        3: "Grupo 3: Irregulares"
+    }
+    
+    return cluster_id, nombres_perfiles.get(cluster_id, "Desconocido")
+
