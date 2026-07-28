@@ -13,7 +13,7 @@
 
 ## 📖 Sobre el Proyecto
 
-Este proyecto es una aplicación de grado de producción (Senior Level) diseñada para revolucionar la educación personalizada. Va más allá de las predicciones clásicas, integrando un flujo completo de Inteligencia Artificial que **descubre perfiles** y **aprende a recomendar** intervenciones pedagógicas, todo sostenido por pipelines automáticos de **MLOps**.
+Este proyecto es una aplicación de grado de producción diseñada para revolucionar la educación personalizada. Va más allá de las predicciones clásicas, integrando un flujo completo de Inteligencia Artificial que **descubre perfiles** y **aprende a recomendar** intervenciones pedagógicas, todo sostenido por pipelines automáticos de **MLOps**.
 
 El núcleo del sistema resuelve un problema secuencial real:
 1. No tenemos a los estudiantes etiquetados previamente.
