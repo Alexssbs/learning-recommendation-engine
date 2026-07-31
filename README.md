@@ -1,4 +1,3 @@
-```markdown
 <div align="center">
   <h1>🎬 Movie Recommender with RL</h1>
   <p><i>Sistema de recomendación de películas que combina Aprendizaje No Supervisado, Reinforcement Learning y una arquitectura MLOps Serverless.</i></p>
