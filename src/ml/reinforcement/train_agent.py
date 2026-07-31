@@ -12,7 +12,7 @@ from agent import QLearningAgent
 def train_agent():
     """Entrena el agente RL con validación"""
     
-    print("🎬 Iniciando entrenamiento del agente RL...")
+    print(" Iniciando entrenamiento del agente RL...")
     
     # 1. Inicializar entorno y agente
     env = MovieRecommendationEnv()
@@ -30,13 +30,13 @@ def train_agent():
     
     # Obtener usuarios para entrenamiento
     users = env.ratings['userId'].unique()
-    print(f"\n📊 Entrenando con {len(users)} usuarios")
+    print(f"\n Entrenando con {len(users)} usuarios")
     print(f"   Episodios: {episodes}")
     print(f"   Estados: {env.num_states}")
     print(f"   Acciones: {env.num_actions}")
     
     # 3. Entrenamiento
-    print("\n🔄 Entrenando...")
+    print("\n Entrenando...")
     episode_rewards = []
     
     for episode in range(episodes):
@@ -68,7 +68,7 @@ def train_agent():
                   f"Epsilon = {agent.epsilon:.3f}")
     
     # 4. Validación final
-    print("\n📊 Validando agente...")
+    print("\n Validando agente...")
     validation_rewards = []
     
     for _ in range(validation_episodes):
@@ -90,7 +90,7 @@ def train_agent():
     model_path = models_dir / 'q_table.json'
     
     agent.save_model(str(model_path))
-    print(f"\n💾 Modelo guardado en {model_path}")
+    print(f"\n Modelo guardado en {model_path}")
     
     # 6. Guardar métricas
     metrics = {
@@ -109,10 +109,10 @@ def train_agent():
     
     with open(models_dir / 'rl_metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
-    print(f"📈 Métricas guardadas en rl_metrics.json")
+    print(f" Métricas guardadas en rl_metrics.json")
     
     # 7. Mostrar política aprendida
-    print("\n🎯 Política aprendida:")
+    print("\n Política aprendida:")
     action_names = {0: 'Explotar', 1: 'Explorar', 2: 'Mezclar'}
     for state in range(env.num_states):
         best_action = np.argmax(agent.q_table[state, :])

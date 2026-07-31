@@ -30,7 +30,7 @@ class MovieRecommendationEnv:
         # Calcular estadísticas por cluster
         self._compute_cluster_stats()
         
-        print(f"✅ Entorno inicializado:")
+        print(f" Entorno inicializado:")
         print(f"   Estados (clusters): {self.num_states}")
         print(f"   Acciones: {self.num_actions}")
         print(f"   Películas: {len(self.movies):,}")

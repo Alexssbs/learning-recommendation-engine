@@ -9,6 +9,7 @@ import sys
 import os
 import numpy as np
 import traceback
+import subprocess
 
 # Añadir src al path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -26,6 +27,7 @@ app = FastAPI(
 # Configurar rutas
 BASE_DIR = Path(__file__).parent.parent.parent
 STATIC_DIR = BASE_DIR / "src" / "static"
+TEMPLATES_DIR = BASE_DIR / "src" / "templates"
 
 # Montar estáticos
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -33,6 +35,147 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Cargar modelos
 models = {}
 data = {}
+
+def ensure_models_exist():
+    """Verifica que los modelos existen y los entrena si es necesario"""
+    models_dir = Path("src/models")
+    processed_dir = Path("data/processed")
+    
+    # Verificar que los datos procesados existen
+    if not (processed_dir / 'movies_with_genres.csv').exists():
+        print(" Datos procesados no encontrados. Ejecutando preprocesamiento...")
+        try:
+            # Ejecutar preprocesamiento
+            result = subprocess.run(
+                ["uv", "run", "python", "scripts/preprocess_data.py"],
+                capture_output=True,
+                text=True
+            )
+            if result.returncode != 0:
+                print(f" Error en preprocesamiento: {result.stderr}")
+                return False
+            print(" Preprocesamiento completado")
+        except Exception as e:
+            print(f" Error ejecutando preprocesamiento: {e}")
+            return False
+    
+    # Verificar que los modelos existen
+    required_models = [
+        'movie_kmeans.pkl',
+        'movie_scaler.pkl',
+        'svd_model.pkl',
+        'q_table.json'
+    ]
+    
+    missing_models = []
+    for model_file in required_models:
+        if not (models_dir / model_file).exists():
+            missing_models.append(model_file)
+    
+    if missing_models:
+        print(f" Modelos faltantes: {missing_models}")
+        print(" Ejecutando entrenamiento de modelos...")
+        
+        try:
+            # Entrenar clustering
+            if 'movie_kmeans.pkl' in missing_models or 'movie_scaler.pkl' in missing_models:
+                print("   Entrenando Clustering...")
+                subprocess.run(
+                    ["uv", "run", "python", "src/ml/clustering/train_clustering.py"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            
+            # Entrenar SVD
+            if 'svd_model.pkl' in missing_models:
+                print("   Entrenando SVD...")
+                subprocess.run(
+                    ["uv", "run", "python", "src/ml/recommendation/train_svd.py"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            
+            # Entrenar Agente RL
+            if 'q_table.json' in missing_models:
+                print("   Entrenando Agente RL...")
+                subprocess.run(
+                    ["uv", "run", "python", "src/ml/reinforcement/train_agent.py"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            
+            print(" Todos los modelos entrenados")
+            return True
+            
+        except subprocess.CalledProcessError as e:
+            print(f" Error entrenando modelos: {e.stderr}")
+            return False
+        except Exception as e:
+            print(f" Error: {e}")
+            return False
+    
+    return True
+
+def load_models():
+    """Carga todos los modelos y datos"""
+    global models, data
+    
+    try:
+        # Asegurar que los modelos existen
+        if not ensure_models_exist():
+            print("  Los modelos no pudieron ser entrenados automáticamente.")
+            print("   Ejecuta manualmente:")
+            print("   uv run python scripts/preprocess_data.py")
+            print("   uv run python src/ml/clustering/train_clustering.py")
+            print("   uv run python src/ml/recommendation/train_svd.py")
+            print("   uv run python src/ml/reinforcement/train_agent.py")
+            return
+        
+        models_dir = Path("src/models")
+        processed_dir = Path("data/processed")
+        
+        print("🎬 Cargando modelos...")
+        
+        # Cargar datos
+        data['movies'] = pd.read_csv(processed_dir / 'movies_with_clusters.csv')
+        data['ratings'] = pd.read_csv(processed_dir / 'ratings_clean.csv')
+        print(f" Datos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
+        
+        # Cargar modelos
+        models['kmeans'] = joblib.load(models_dir / 'movie_kmeans.pkl')
+        models['scaler'] = joblib.load(models_dir / 'movie_scaler.pkl')
+        models['svd'] = joblib.load(models_dir / 'svd_model.pkl')
+        print(" Modelos sklearn cargados")
+        
+        # Cargar agente RL
+        agent = QLearningAgent(num_states=1, num_actions=1)
+        agent.load_model(str(models_dir / 'q_table.json'))
+        models['agent'] = agent
+        print(" Agente RL cargado")
+        
+        # Acciones
+        models['action_map'] = {
+            0: "⭐ Popular Choice (Exploit)",
+            1: "🔍 New Discovery (Explore)",
+            2: "🎭 Similar Taste (Mix)"
+        }
+        
+        # Cargar métricas si existen
+        metrics_files = ['clustering_metrics.json', 'svd_metrics.json', 'rl_metrics.json']
+        for metric_file in metrics_files:
+            if (models_dir / metric_file).exists():
+                with open(models_dir / metric_file, 'r') as f:
+                    models[metric_file.replace('.json', '')] = json.load(f)
+        
+        print(f" Modelos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
+        
+    except Exception as e:
+        print(f" ERROR cargando modelos: {e}")
+        print(traceback.format_exc())
+        raise
 
 def load_models():
     global models, data
@@ -46,19 +189,19 @@ def load_models():
         # Cargar datos
         data['movies'] = pd.read_csv(processed_dir / 'movies_with_clusters.csv')
         data['ratings'] = pd.read_csv(processed_dir / 'ratings_clean.csv')
-        print(f"✅ Datos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
+        print(f" Datos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
         
         # Cargar modelos
         models['kmeans'] = joblib.load(models_dir / 'movie_kmeans.pkl')
         models['scaler'] = joblib.load(models_dir / 'movie_scaler.pkl')
         models['svd'] = joblib.load(models_dir / 'svd_model.pkl')
-        print("✅ Modelos sklearn cargados")
+        print(" Modelos sklearn cargados")
         
         # Cargar agente RL
         agent = QLearningAgent(num_states=1, num_actions=1)
         agent.load_model(str(models_dir / 'q_table.json'))
         models['agent'] = agent
-        print("✅ Agente RL cargado")
+        print(" Agente RL cargado")
         
         # Acciones
         models['action_map'] = {
@@ -67,10 +210,10 @@ def load_models():
             2: "🎭 Similar Taste (Mix)"
         }
         
-        print(f"✅ Modelos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
+        print(f" Modelos cargados: {len(data['movies']):,} películas, {len(data['ratings']):,} ratings")
         
     except Exception as e:
-        print(f"❌ ERROR cargando modelos: {e}")
+        print(f" ERROR cargando modelos: {e}")
         print(traceback.format_exc())
         raise
 
@@ -88,7 +231,7 @@ async def home():
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except Exception as e:
-        print(f"❌ Error en home: {e}")
+        print(f" Error en home: {e}")
         print(traceback.format_exc())
         return HTMLResponse(f"<h1>Error</h1><p>{str(e)}</p>", status_code=500)
 
@@ -251,7 +394,7 @@ async def get_recommendations(user_data: UserData):
         }
         
     except Exception as e:
-        print(f"❌ Error en recommend: {e}")
+        print(f" Error en recommend: {e}")
         print(traceback.format_exc())
         return JSONResponse({
             "status": "error",
@@ -301,7 +444,7 @@ async def receive_feedback(feedback: FeedbackData):
         if feedback.user_id in recommendation_history:
             recommendation_history[feedback.user_id] = []
         
-        print(f"✅ Feedback: Usuario {feedback.user_id}, Rating {feedback.rating}, Reward {reward:.2f}")
+        print(f" Feedback: Usuario {feedback.user_id}, Rating {feedback.rating}, Reward {reward:.2f}")
         print(f"   Q-Table actualizada para estado {state}, acción {action}")
         
         return JSONResponse({
@@ -311,7 +454,7 @@ async def receive_feedback(feedback: FeedbackData):
         })
         
     except Exception as e:
-        print(f"❌ Error en feedback: {e}")
+        print(f" Error en feedback: {e}")
         return JSONResponse({
             "status": "error",
             "message": str(e)

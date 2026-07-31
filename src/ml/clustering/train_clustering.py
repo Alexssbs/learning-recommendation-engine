@@ -16,17 +16,17 @@ from pathlib import Path
 def train_clustering():
     """Entrena K-Means dinámicamente detectando columnas de géneros"""
     
-    print("🎬 Iniciando entrenamiento de Clustering...")
+    print(" Iniciando entrenamiento de Clustering...")
     
     # 1. Cargar datos procesados
     processed_dir = Path("data/processed")
     movies = pd.read_csv(processed_dir / 'movies_with_genres.csv')
     
-    print(f"✅ Cargadas {len(movies):,} películas")
+    print(f" Cargadas {len(movies):,} películas")
     
     # 2. Detectar columnas de género dinámicamente
     genre_cols = [col for col in movies.columns if col not in ['movieId', 'title', 'genres']]
-    print(f"📊 Columnas de género detectadas: {len(genre_cols)}")
+    print(f" Columnas de género detectadas: {len(genre_cols)}")
     print(f"   {genre_cols[:5]}...")
     
     # 3. Preparar datos
@@ -37,7 +37,7 @@ def train_clustering():
     X_scaled = scaler.fit_transform(X)
     
     # 5. Determinar número óptimo de clusters (Elbow Method)
-    print("\n🔍 Determinando número óptimo de clusters...")
+    print("\n Determinando número óptimo de clusters...")
     inertias = []
     silhouette_scores = []
     k_range = range(2, 11)
@@ -49,16 +49,16 @@ def train_clustering():
         silhouette_scores.append(silhouette_score(X_scaled, kmeans.labels_))
     
     # Mostrar resultados
-    print("\n📊 Métricas por número de clusters:")
+    print("\n Métricas por número de clusters:")
     for k, sil, iner in zip(k_range, silhouette_scores, inertias):
         print(f"   k={k}: Silhouette={sil:.3f}, Inercia={iner:.1f}")
     
     # Seleccionar el mejor k (mayor silhouette score)
     best_k = k_range[np.argmax(silhouette_scores)]
-    print(f"\n✅ Mejor k: {best_k} (Silhouette: {max(silhouette_scores):.3f})")
+    print(f"\n Mejor k: {best_k} (Silhouette: {max(silhouette_scores):.3f})")
     
     # 6. Entrenar modelo final con el mejor k
-    print(f"\n🔄 Entrenando K-Means con k={best_k}...")
+    print(f"\n Entrenando K-Means con k={best_k}...")
     kmeans = KMeans(n_clusters=best_k, random_state=42, n_init=10)
     kmeans.fit(X_scaled)
     
@@ -67,7 +67,7 @@ def train_clustering():
     final_silhouette = silhouette_score(X_scaled, labels)
     final_db = davies_bouldin_score(X_scaled, labels)
     
-    print(f"\n📊 Métricas finales:")
+    print(f"\n Métricas finales:")
     print(f"   Silhouette Score: {final_silhouette:.3f}")
     print(f"   Davies-Bouldin: {final_db:.3f}")
     print(f"   Inercia: {kmeans.inertia_:.1f}")
@@ -79,7 +79,7 @@ def train_clustering():
     joblib.dump(kmeans, models_dir / 'movie_kmeans.pkl')
     joblib.dump(scaler, models_dir / 'movie_scaler.pkl')
     
-    print(f"\n💾 Modelos guardados en {models_dir}")
+    print(f"\n Modelos guardados en {models_dir}")
     
     # 9. Guardar películas con clusters
     movies['cluster'] = kmeans.labels_
@@ -87,10 +87,10 @@ def train_clustering():
         processed_dir / 'movies_with_clusters.csv', 
         index=False
     )
-    print(f"   ✅ movies_with_clusters.csv guardado")
+    print(f"    movies_with_clusters.csv guardado")
     
     # 10. Mostrar distribución de clusters
-    print("\n📊 Distribución de clusters:")
+    print("\n Distribución de clusters:")
     cluster_stats = movies.groupby('cluster').agg({
         'movieId': 'count',
         **{genre: 'sum' for genre in genre_cols[:3]}
@@ -115,7 +115,7 @@ def train_clustering():
     
     with open(models_dir / 'clustering_metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
-    print(f"\n📈 Métricas guardadas en clustering_metrics.json")
+    print(f"\n Métricas guardadas en clustering_metrics.json")
     
     return kmeans, scaler, metrics
 

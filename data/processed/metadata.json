@@ -28,5 +28,7 @@
     0.5,
     5.0
   ],
-  "date_processed": "2026-07-30T23:43:35.563264"
+  "date_processed": "2026-07-31T11:54:24.849115",
+  "dataset_source": "https://grouplens.org/datasets/movielens/latest/",
+  "dataset_version": "ml-latest-small"
 }

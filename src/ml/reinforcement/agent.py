@@ -69,5 +69,5 @@ class QLearningAgent:
         self.epsilon = data.get('epsilon', 0.01)
         self.num_states = data.get('num_states', self.num_states)
         self.num_actions = data.get('num_actions', self.num_actions)
-        print(f"✅ Modelo cargado: {self.num_states} estados, {self.num_actions} acciones")
+        print(f" Modelo cargado: {self.num_states} estados, {self.num_actions} acciones")
         return self.q_table

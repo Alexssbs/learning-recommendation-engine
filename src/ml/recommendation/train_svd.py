@@ -15,13 +15,13 @@ import numpy as np
 def train_svd():
     """Entrena SVD dinámicamente con optimización de hiperparámetros"""
     
-    print("🎬 Iniciando entrenamiento de SVD...")
+    print(" Iniciando entrenamiento de SVD...")
     
     # 1. Cargar datos
     processed_dir = Path("data/processed")
     ratings = pd.read_csv(processed_dir / 'ratings_clean.csv')
     
-    print(f"✅ Cargadas {len(ratings):,} calificaciones")
+    print(f" Cargadas {len(ratings):,} calificaciones")
     print(f"   Columnas: {list(ratings.columns)}")
     
     # 2. Configurar Surprise
@@ -36,7 +36,7 @@ def train_svd():
     )
     
     # 3. Optimización de hiperparámetros con GridSearch
-    print("\n🔍 Optimizando hiperparámetros con GridSearch...")
+    print("\n Optimizando hiperparámetros con GridSearch...")
     
     # GridSearch más rápido
     param_grid = {
@@ -57,7 +57,7 @@ def train_svd():
     
     # 4. Mejores parámetros
     best_params = gs.best_params['rmse']
-    print(f"\n✅ Mejores hiperparámetros:")
+    print(f"\n Mejores hiperparámetros:")
     print(f"   n_factors: {best_params['n_factors']}")
     print(f"   n_epochs: {best_params['n_epochs']}")
     print(f"   lr_all: {best_params['lr_all']}")
@@ -65,7 +65,7 @@ def train_svd():
     print(f"   Best RMSE: {gs.best_score['rmse']:.4f}")
     
     # 5. Entrenar modelo final
-    print("\n🔄 Entrenando modelo final...")
+    print("\n Entrenando modelo final...")
     trainset, testset = train_test_split(data, test_size=0.2, random_state=42)
     
     model = SVD(
@@ -82,7 +82,7 @@ def train_svd():
     rmse = accuracy.rmse(predictions)
     mae = accuracy.mae(predictions)
     
-    print(f"\n📊 Métricas en test:")
+    print(f"\n Métricas en test:")
     print(f"   RMSE: {rmse:.4f}")
     print(f"   MAE: {mae:.4f}")
     
@@ -91,7 +91,7 @@ def train_svd():
     models_dir.mkdir(parents=True, exist_ok=True)
     
     joblib.dump(model, models_dir / 'svd_model.pkl')
-    print(f"\n💾 Modelo guardado en {models_dir / 'svd_model.pkl'}")
+    print(f"\nModelo guardado en {models_dir / 'svd_model.pkl'}")
     
     # 8. Guardar métricas - CORREGIDO FINAL
     # gs.best_index es un dict con {'rmse': idx, 'mae': idx}
@@ -113,7 +113,7 @@ def train_svd():
     
     with open(models_dir / 'svd_metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
-    print(f"📈 Métricas guardadas en svd_metrics.json")
+    print(f"Métricas guardadas en svd_metrics.json")
     
     return model, metrics
 
