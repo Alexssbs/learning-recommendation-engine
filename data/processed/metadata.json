@@ -1,0 +1,32 @@
+{
+  "total_movies": 9742,
+  "total_users": 610,
+  "total_ratings": 100836,
+  "genres": [
+    "(no genres listed)",
+    "Action",
+    "Adventure",
+    "Animation",
+    "Children",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Fantasy",
+    "Film-Noir",
+    "Horror",
+    "IMAX",
+    "Musical",
+    "Mystery",
+    "Romance",
+    "Sci-Fi",
+    "Thriller",
+    "War",
+    "Western"
+  ],
+  "rating_range": [
+    0.5,
+    5.0
+  ],
+  "date_processed": "2026-07-30T23:43:35.563264"
+}
